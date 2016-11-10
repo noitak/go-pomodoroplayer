@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
-	"io/ioutil"
 )
 
 const playcmd = "/usr/bin/afplay" // mac only!!
@@ -49,18 +49,18 @@ func working(t time.Duration, worksongs []string) {
 	go timer(t, playend)
 
 	var cmd *exec.Cmd
-		for _, song := range worksongs {
-			cmd = exec.Command(playcmd, song)
+	for _, song := range worksongs {
+		cmd = exec.Command(playcmd, song)
 
-			fmt.Printf("Start: %s\n", song)
-			go play(cmd, playend)
+		fmt.Printf("Start: %s\n", song)
+		go play(cmd, playend)
 
-			s := <-playend
-			if s == "timeout" {
-				cmd.Process.Kill()
-				break
-			}
+		s := <-playend
+		if s == "timeout" {
+			cmd.Process.Kill()
+			break
 		}
+	}
 }
 
 func main() {
@@ -81,8 +81,12 @@ func main() {
 
 	json.Unmarshal(raw, &pomodoro)
 
-	pomodoro.WorkTime = 4*time.Minute
-	pomodoro.RestTime = 2*time.Second
+	pomodoro.WorkTime *= time.Minute
+	pomodoro.RestTime *= time.Minute
 
+	if pomodoro.WorkTime == 0 || pomodoro.RestTime == 0 {
+		fmt.Println("set WorkTime and RestTime > 1 min")
+		os.Exit(0)
+	}
 	pomodoro.Start()
 }
