@@ -27,6 +27,7 @@ func NewPomodoro(
 }
 
 func (p *Pomodoro) Start() {
+	fmt.Printf("Pomodoro Start [%d min]\n", p.WorkTime)
 	working(p.WorkTime, p.WorkSongs)
 	working(p.RestTime, p.RestSongs)
 	fmt.Println("Pomodoro End")
@@ -52,7 +53,7 @@ func working(t time.Duration, worksongs []string) {
 	for _, song := range worksongs {
 		cmd = exec.Command(playcmd, song)
 
-		fmt.Printf("Start: %s\n", song)
+		fmt.Printf("start: %s\n", song)
 		go play(cmd, playend)
 
 		s := <-playend
