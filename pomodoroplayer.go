@@ -13,23 +13,23 @@ const playcmd = "/usr/bin/afplay" // mac only!!
 
 type Pomodoro struct {
 	WorkSongs []string
-	WorkTime  time.Duration
+	WorkMin   time.Duration
 	RestSongs []string
-	RestTime  time.Duration
+	RestMin   time.Duration
 }
 
 func NewPomodoro(
 	worksongs []string,
-	worktime time.Duration,
+	workmin time.Duration,
 	restsongs []string,
-	resttime time.Duration) *Pomodoro {
-	return &Pomodoro{worksongs, worktime, restsongs, resttime}
+	restmin time.Duration) *Pomodoro {
+	return &Pomodoro{worksongs, workmin, restsongs, restmin}
 }
 
 func (p *Pomodoro) Start() {
-	fmt.Printf("Pomodoro Start [%d min]\n", p.WorkTime)
-	working(p.WorkTime, p.WorkSongs)
-	working(p.RestTime, p.RestSongs)
+	fmt.Printf("Pomodoro Start [%v]\n", p.WorkMin)
+	working(p.WorkMin, p.WorkSongs)
+	working(p.RestMin, p.RestSongs)
 	fmt.Println("Pomodoro End")
 }
 
@@ -82,11 +82,11 @@ func main() {
 
 	json.Unmarshal(raw, &pomodoro)
 
-	pomodoro.WorkTime *= time.Minute
-	pomodoro.RestTime *= time.Minute
+	pomodoro.WorkMin *= time.Minute
+	pomodoro.RestMin *= time.Minute
 
-	if pomodoro.WorkTime == 0 || pomodoro.RestTime == 0 {
-		fmt.Println("set WorkTime and RestTime > 1 min")
+	if pomodoro.WorkMin == 0 || pomodoro.RestMin == 0 {
+		fmt.Println("set WorkMin and RestMin > 1 min")
 		os.Exit(0)
 	}
 	pomodoro.Start()
