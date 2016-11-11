@@ -12,31 +12,19 @@ import (
 const playcmd = "/usr/bin/afplay" // mac only!!
 
 type Pomodoro struct {
-	WorkSongs []string
 	WorkMin   time.Duration
-	RestSongs []string
 	RestMin   time.Duration
-}
-
-func NewPomodoro(
-	worksongs []string,
-	workmin time.Duration,
-	restsongs []string,
-	restmin time.Duration) *Pomodoro {
-	return &Pomodoro{worksongs, workmin, restsongs, restmin}
+	WorkSongs []string
+	RestSongs []string
 }
 
 func (p *Pomodoro) Start() {
 	fmt.Printf("Pomodoro Start [%v]\n", p.WorkMin)
-	working(p.WorkMin, p.WorkSongs)
-	working(p.RestMin, p.RestSongs)
-	fmt.Println("Pomodoro End")
-}
 
-func play(cmd *exec.Cmd, ch chan string) {
-	cmd.Start()
-	cmd.Wait()
-	ch <- "playend"
+	play(p.WorkMin, p.WorkSongs)
+	play(p.RestMin, p.RestSongs)
+
+	fmt.Println("Pomodoro End")
 }
 
 func timer(t time.Duration, ch chan string) {
@@ -44,19 +32,23 @@ func timer(t time.Duration, ch chan string) {
 	ch <- "timeout"
 }
 
-func working(t time.Duration, worksongs []string) {
-	playend := make(chan string)
+func play(t time.Duration, songs []string) {
+	ch := make(chan string)
 
-	go timer(t, playend)
+	go timer(t, ch)
 
 	var cmd *exec.Cmd
-	for _, song := range worksongs {
+	for _, song := range songs {
 		cmd = exec.Command(playcmd, song)
 
 		fmt.Printf("start: %s\n", song)
-		go play(cmd, playend)
+		go func() {
+			cmd.Start()
+			cmd.Wait()
+			ch <- "playend"
+		}()
 
-		s := <-playend
+		s := <-ch
 		if s == "timeout" {
 			cmd.Process.Kill()
 			break
@@ -66,6 +58,7 @@ func working(t time.Duration, worksongs []string) {
 
 func main() {
 	var musiclist string
+
 	if len(os.Args) > 1 {
 		musiclist = os.Args[1]
 	} else {
@@ -82,12 +75,16 @@ func main() {
 
 	json.Unmarshal(raw, &pomodoro)
 
+	if pomodoro.WorkMin == 0 || pomodoro.RestMin == 0 {
+		fmt.Println("Set WorkMin and RestMin > 1 min")
+		os.Exit(1)
+	}
+	if len(pomodoro.WorkSongs) == 0 || len(pomodoro.RestSongs) == 0 {
+		fmt.Printf("No songs in %s\n", musiclist)
+		os.Exit(1)
+	}
 	pomodoro.WorkMin *= time.Minute
 	pomodoro.RestMin *= time.Minute
 
-	if pomodoro.WorkMin == 0 || pomodoro.RestMin == 0 {
-		fmt.Println("set WorkMin and RestMin > 1 min")
-		os.Exit(0)
-	}
 	pomodoro.Start()
 }
