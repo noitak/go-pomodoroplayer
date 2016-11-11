@@ -19,12 +19,15 @@ type Pomodoro struct {
 }
 
 func (p *Pomodoro) Start() {
-	fmt.Printf("Pomodoro Start [%v]\n", p.WorkMin)
+	for pomodoroCount, workSong, restSong := 0, 0, 0; ; pomodoroCount++ {
+		fmt.Printf("[%d] Pomodoro Start [%v]\n", pomodoroCount+1, p.WorkMin)
 
-	play(p.WorkMin, p.WorkSongs)
-	play(p.RestMin, p.RestSongs)
+		workSong = play(p.WorkMin, p.WorkSongs, workSong)
 
-	fmt.Println("Pomodoro End")
+		fmt.Printf("[%d] Pomodoro End\n", pomodoroCount+1)
+
+		restSong = play(p.RestMin, p.RestSongs, restSong)
+	}
 }
 
 func timer(t time.Duration, ch chan string) {
@@ -32,16 +35,18 @@ func timer(t time.Duration, ch chan string) {
 	ch <- "timeout"
 }
 
-func play(t time.Duration, songs []string) {
+func play(t time.Duration, songs []string, songPos int) int {
 	ch := make(chan string)
 
 	go timer(t, ch)
 
 	var cmd *exec.Cmd
-	for _, song := range songs {
-		cmd = exec.Command(playcmd, song)
+	for {
+		if songPos >= len(songs) {
+			songPos = 0
+		}
+		cmd = exec.Command(playcmd, songs[songPos])
 
-		fmt.Printf("start: %s\n", song)
 		go func() {
 			cmd.Start()
 			cmd.Wait()
@@ -52,8 +57,11 @@ func play(t time.Duration, songs []string) {
 		if s == "timeout" {
 			cmd.Process.Kill()
 			break
+		} else if s == "playend" {
+			songPos++
 		}
 	}
+	return songPos
 }
 
 func main() {
