@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -65,15 +66,13 @@ func play(t time.Duration, songs []string, songPos int) int {
 }
 
 func main() {
-	var musiclist string
-
-	if len(os.Args) > 1 {
-		musiclist = os.Args[1]
-	} else {
-		fmt.Println("Usage: pmodoroplayer musiclist.json")
+	var configfile = flag.String("c", "", "music_config.json")
+	flag.Parse()
+	if len(*configfile) == 0 {
+		flag.Usage()
 		os.Exit(1)
 	}
-	raw, err := ioutil.ReadFile(musiclist)
+	raw, err := ioutil.ReadFile(*configfile)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -88,7 +87,7 @@ func main() {
 		os.Exit(1)
 	}
 	if len(pomodoro.WorkSongs) == 0 || len(pomodoro.RestSongs) == 0 {
-		fmt.Printf("No songs in %s\n", musiclist)
+		fmt.Printf("No songs in %s\n", *configfile)
 		os.Exit(1)
 	}
 	pomodoro.WorkMin *= time.Minute
