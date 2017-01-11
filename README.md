@@ -2,9 +2,8 @@
 
 Music Player for [Pomodoro Technique](http://pomodorotechnique.com/).
 
-**Mac Only**
-
-go-pomodoroplayer use **afplay** command now.
+## Requirements
+* afplay command (Mac only)
 
 ## How to use
 

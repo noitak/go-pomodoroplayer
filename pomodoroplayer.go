@@ -82,12 +82,12 @@ func main() {
 
 	json.Unmarshal(raw, &pomodoro)
 
-	if pomodoro.WorkMin == 0 || pomodoro.RestMin == 0 {
-		fmt.Println("Set WorkMin and RestMin > 1 min")
-		os.Exit(1)
-	}
 	if len(pomodoro.WorkSongs) == 0 || len(pomodoro.RestSongs) == 0 {
 		fmt.Printf("No songs in %s\n", *configfile)
+		os.Exit(1)
+	}
+	if pomodoro.WorkMin == 0 || pomodoro.RestMin == 0 {
+		fmt.Println("Set WorkMin and RestMin > 1 min")
 		os.Exit(1)
 	}
 	pomodoro.WorkMin *= time.Minute
